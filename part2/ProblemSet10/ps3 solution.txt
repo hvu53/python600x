@@ -1,0 +1,80 @@
+10.3: (my solution)
+def findDistances(digraph, path): #helper function
+        """
+        Finds the total distance and outdoor distance of a path.
+
+        Assumes that the path is a list of valid nodes.
+
+        Returns a tuple of the total distance and outdoor distance
+        """
+        total_distance = 0
+        outdoor_distance = 0
+        for node in range(len(path)-1): #for each node of the path except for the last one
+            for dest in digraph.edges[Node(path[node])]: #for each destination of a node
+                if dest[0] == Node(path[node+1]): #if destination is the next node in path
+                    total_distance += int(dest[1][0]) #add the total distance
+                    outdoor_distance += int(dest[1][1])
+        return (total_distance, outdoor_distance)
+
+def bruteForceSearch(digraph, start, end, maxTotalDist, maxDistOutdoors):    
+    """
+    Finds the shortest path from start to end using brute-force approach.
+    The total distance travelled on the path must not exceed maxTotalDist, and
+    the distance spent outdoor on this path must not exceed maxDistOutdoors.
+
+    Parameters: 
+        digraph: instance of class Digraph or its subclass
+        start, end: start & end building numbers (strings)
+        maxTotalDist : maximum total distance on a path (integer)
+        maxDistOutdoors: maximum distance spent outdoors on a path (integer)
+
+    Assumes:
+        start and end are numbers for existing buildings in graph
+
+    Returns:
+        The shortest-path from start to end, represented by 
+        a list of building numbers (in strings), [n_1, n_2, ..., n_k], 
+        where there exists an edge from n_i to n_(i+1) in digraph, 
+        for all 1 <= i < k.
+
+        If there exists no path that satisfies maxTotalDist and
+        maxDistOutdoors constraints, then raises a ValueError.
+    """
+    def bruteForceSearchHelper(digraph, start, end, maxTotalDist, maxDistOutdoors, path = []):
+        #helper function
+        path = path[:]
+        path += [start]
+        paths = [path]
+        if start == end:
+            return paths
+        for node in digraph.childrenOf(Node(start)):
+            if repr(node) not in path: #avoid cycles
+                new_paths = bruteForceSearchHelper(digraph,repr(node),end,maxTotalDist, maxDistOutdoors, path)
+                for a_path in new_paths:
+                    paths.append(a_path) #append new paths
+        for a_path in paths[:]:
+            if a_path[-1] != end: #remove invalid paths
+                paths.remove(a_path)
+        return paths
+
+    #outside helper functions
+    paths = bruteForceSearchHelper(digraph, start, end, maxTotalDist, maxDistOutdoors)
+    #choosing the shortest path
+    min_total_dist = None
+    shortest = None
+    for path in paths:
+        total_dist, outdoor_dist = findDistances(digraph, path)
+        if total_dist <= maxTotalDist and outdoor_dist <= maxDistOutdoors\
+            and (shortest == None or total_dist < min_total_dist): #if shortest valid path found
+            shortest = path[:]
+            min_total_dist = total_dist
+    if shortest == None:
+        raise ValueError("no such path exists")
+    return [str(i) for i in shortest]
+I think that
+for a_path in new_paths:
+    paths.append(a_path)
+can be simplified to just
+paths = paths + new_paths
+Something I just realized.
+10.4: (not my solution actually)

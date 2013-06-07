@@ -1,0 +1,79 @@
+def directedDFS(digraph, start, end, maxTotalDist, maxDistOutdoors):
+"""
+Finds the shortest path from start to end using directed depth-first.
+search approach. The total distance travelled on the path must not
+exceed maxTotalDist, and the distance spent outdoor on this path must
+not exceed maxDistOutdoors.
+
+Parameters: 
+    digraph: instance of class Digraph or its subclass
+    start, end: start & end building numbers (strings)
+    maxTotalDist : maximum total distance on a path (integer)
+    maxDistOutdoors: maximum distance spent outdoors on a path (integer)
+
+Assumes:
+    start and end are numbers for existing buildings in graph
+
+Returns:
+    The shortest-path from start to end, represented by 
+    a list of building numbers (in strings), [n_1, n_2, ..., n_k], 
+    where there exists an edge from n_i to n_(i+1) in digraph, 
+    for all 1 <= i < k.
+
+    If there exists no path that satisfies maxTotalDist and
+    maxDistOutdoors constraints, then raises a ValueError.
+"""
+start = Node(start)
+end = Node(end)
+best_path = None
+best_path_total_distance = maxTotalDist
+paths = directedPaths(digraph,start,end,maxTotalDist,maxDistOutdoors,best_path_total_distance)
+    for path in range(len(paths)):
+        path_distances = pathDistances(digraph, paths[path])
+        if (path_distances[0]<=maxTotalDist and path_distances[0]<=best_path_total_distance and path_distances[1]<=maxDistOutdoors):
+            best_path = paths[path]
+            best_path_total_distance = path_distances[0]
+    if best_path!=None:
+        answer = []
+        for node in best_path:
+            answer.append(str(node))
+        return answer
+    else:
+        raise ValueError('no paths satisfy constraints')
+
+
+
+def directedPaths(digraph, start, end, maxTotalDist, maxDistOutdoors, best_path_total_distance, path = []):
+
+    path = path + [start]
+    if start == end:
+        return [path]
+    paths = []
+    for node in digraph.childrenOf(start):
+        if node not in path and pathDistances(digraph,path)[0]<=best_path_total_distance:
+            best_path_total_distance=pathDistances(digraph,path)
+            newpaths = directedPaths(digraph,node,end, maxTotalDist,maxDistOutdoors,best_path_total_distance,path)
+            for newpath in newpaths:
+                paths.append(newpath)
+    return paths
+
+
+
+def pathDistances(digraph, testpath):
+    """
+    takes a digraph with weighted paths(total and outdoors) and returns a tuple
+    with total distance at index 0 and outdoor distance at index 1
+    """
+    total_distance=0
+    total_outdoor_distance=0
+    for n in range(len(testpath)-1):
+        testedges=digraph.edges[testpath[n]]
+        if len(testedges)==1:
+            total_distance+=float(testedges[0][1][0])
+            total_outdoor_distance+=float(testedges[0][1][1])
+        else:
+            for testedge in testedges:
+                if testedge[0]==testpath[n+1]:
+                    total_distance+=float(testedge[1][0])
+                    total_outdoor_distance+=float(testedge[1][1])
+    return (total_distance,total_outdoor_distance)
